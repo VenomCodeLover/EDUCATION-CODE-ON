@@ -1,0 +1,74 @@
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+# Install necessary packages (Uncomment if running for the first time)
+# !pip install pandas numpy scikit-learn
+
+# Step 1: Generate Sample Student Data
+sample_data = pd.DataFrame({
+    'Grades': [78, 65, 50, 92, 72, 55, 80, 70, 60, 85],
+    'Attendance': [90, 70, 45, 88, 65, 50, 75, 60, 55, 95],
+    'Participation': [80, 60, 40, 95, 75, 45, 70, 65, 50, 90],
+    'Performance': ['Good', 'Average', 'Poor', 'Excellent', 'Good', 'Poor', 'Good', 'Average', 'Poor', 'Excellent']
+})
+
+data = sample_data.copy()
+
+# Step 2: Inspect the data
+print('Data Head:\n', data.head())
+print('\nData Info:\n')
+data.info()
+
+# Step 3: Preprocess the data
+# Assuming columns: 'Grades', 'Attendance', 'Participation', 'Performance'
+
+# Handling missing values
+data = data.dropna()
+
+# Feature and label separation
+X = data[['Grades', 'Attendance', 'Participation']]
+y = data['Performance']  # Target variable indicating performance level
+
+# Normalize the data
+X = (X - X.min()) / (X.max() - X.min())
+
+# Step 4: Train-Test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Step 5: Model Training
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Step 6: Make predictions
+y_pred = model.predict(X_test)
+
+# Step 7: Evaluation
+print('\nClassification Report:\n')
+print(classification_report(y_test, y_pred))
+
+# Step 8: Identify weak areas (example logic)
+feature_importances = model.feature_importances_
+feature_names = X.columns
+
+print('\nFeature Importances:')
+for name, importance in zip(feature_names, feature_importances):
+    print(f'{name}: {importance:.2f}')
+
+# Recommendation generation (simple rule-based)
+def generate_recommendations(row):
+    if row['Grades'] < 0.5:
+        return 'Needs improvement in Grades'
+    elif row['Attendance'] < 0.5:
+        return 'Needs to improve Attendance'
+    elif row['Participation'] < 0.5:
+        return 'Needs to be more Participative'
+    else:
+        return 'Doing Well'
+
+
+data['Recommendation'] = X.apply(generate_recommendations, axis=1)
+print('\nSample Recommendations:')
+print(data[['Grades', 'Attendance', 'Participation', 'Recommendation']].head())
